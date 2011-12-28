@@ -1,0 +1,74 @@
+#board {
+    height: 400px;
+    width: 400px;
+}
+
+#board .column {
+    height: 50px;
+    width: 50px;
+    background: #fee472;
+    float: left;
+    font-size: 45px;
+}
+
+#board .column.dark {
+    background: #00B392;
+}
+
+#board .column div {
+    height: 50px;
+    width: 50px;
+}
+
+#board .column .WHITE_KING {
+    background: url('../images/wKing.png');
+}
+
+#board .column .WHITE_QUEEN {
+    background: url('../images/wQueen.png');
+}
+
+#board .column .WHITE_ROOK {
+    background: url('../images/wRook.png');
+}
+
+#board .column .WHITE_BISHOP {
+    background: url('../images/wBishop.png');
+}
+
+#board .column .WHITE_KNIGHT {
+    background: url('../images/wKnight.png');
+}
+
+#board .column .WHITE_PAWN {
+    background: url('../images/wPawn.png');
+}
+
+
+#board .column .BLACK_KING {
+    background: url('../images/bKing.png');
+}
+
+#board .column .BLACK_QUEEN {
+    background: url('../images/bQueen.png');
+}
+
+#board .column .BLACK_ROOK {
+    background: url('../images/bRook.png');
+}
+
+#board .column .BLACK_BISHOP {
+    background: url('../images/bBishop.png');
+}
+
+#board .column .BLACK_KNIGHT {
+    background: url('../images/bKnight.png');
+}
+
+#board .column .BLACK_PAWN {
+    background: url('../images/bPawn.png');
+}
+
+#board .column .EMPTY {
+    background: none;
+}
