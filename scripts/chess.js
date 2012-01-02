@@ -24,16 +24,16 @@ var BLACK_ROOK = 0x0E;
 var BLACK_QUEEN = 0x0F;
 
 
-var currentPlayer = 1;  // whose turn is it now?    1 = white, -1 = black
+var currentPlayer = 1;  // whose turn is it now?    1 = white, 0 = black
 
-var board = [[BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK],
-             [BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN],
-             [WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK]];
+var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK, 0, 0, 0, 0, 0, 0, 0, 0,
+             BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, 0, 0, 0, 0, 0, 0, 0, 0,
+             WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK, 0, 0, 0, 0, 0, 0, 0, 0];
 
 
 function getPieceName(pieceValue){
@@ -60,15 +60,12 @@ var onDrop = function(event, ui) {
             
     var parent = ui.draggable.parent();
     
-    if(validateMove(currentPlayer, [parent.data('row'), parent.data('column')], [$(this).data('row'), $(this).data('column')])){
-        
-        board[$(this).data('row')][$(this).data('column')] = board[parent.data('row')][parent.data('column')];
-        board[parent.data('row')][parent.data('column')] = 0;
+    if(validateMove(currentPlayer, parent.data('square'), $(this).data('square'))){
+        board[$(this).data('square')] = board[parent.data('square')];
+        board[parent.data('square')] = 0;
         currentPlayer = -currentPlayer;
         drawBoard(board);
-        
     }else{
-        log('invalid move');
         drawBoard(board);
     }
 }
@@ -79,18 +76,24 @@ $(function(){
 
 function drawBoard(board){
     var str = '';
-    for( var i = 0 ; i < 8 ; i++ ){
-        str += '<div class="row">';
-        for( var j = 0 ; j < 8 ; j++ ){
+    for( var i = 0 ; i < 128 ; i++ ){
+        if( i % 8 === 0 ) {
+            str += '<div class="row">';
+        }
+        
+        if(! (i & 0x88) ) {
             str += '<div class="column ' +
-            ( (i + j) % 2 === 0 ? 'light': 'dark') +
-            '" data-row="' + i + '" data-column="' + j + '">' +
-            '<div class="' + getPieceName(board[i][j]) + '"></div>' +
+            ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'light': 'dark') +
+            '" data-square="' + i + '">' +
+            '<div class="' + getPieceName(board[i]) + '"></div>' +
             '</div>';
         }
-        str += '</div>';
+        if( i % 8 === 0 ) {
+            str += '</div>';
+        }
     }
     $('#board').html(str);
+    
     
     $( ".column" ).droppable({
         drop: onDrop
@@ -101,7 +104,9 @@ function drawBoard(board){
 
 function validateMove(currentPlayer, from, to){
     
-    if(currentPlayer * board[from[0]][from[1]] <= 0) {  // not your turn? 0 = Moving from an empty square
+    return true;
+
+    if(currentPlayer * board[from] <= 0) {  // not your turn? 0 = Moving from an empty square
         return false;
     }
     
