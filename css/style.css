@@ -1,6 +1,11 @@
 #board {
     height: 400px;
-    width: 400px;
+    width: 800px;
+}
+
+#board .row {
+    float: left;
+    clear: both;
 }
 
 #board .column {
@@ -8,11 +13,21 @@
     width: 50px;
     background: #fee472;
     float: left;
-    font-size: 45px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: Arial;
 }
 
 #board .column.dark {
     background: #00B392;
+}
+
+#board .column.off {
+    background: #ffc;
+}
+
+#board .column.off.dark {
+    background: #80D8C8;
 }
 
 #board .column div {

@@ -51,7 +51,7 @@ $(function(){
 function drawBoard(board){
     var str = '';
     for( var i = 0 ; i < 128 ; i++ ){
-        if( i % 8 === 0 ) {
+        if( i % 16 === 0 ) {
             str += '<div class="row">';
         }
         
@@ -59,10 +59,21 @@ function drawBoard(board){
             str += '<div class="column ' +
             ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'light': 'dark') +
             '" data-square="' + i + '">' +
-            '<div class="' + getPieceName(board[i]) + '"></div>' +
+                '<div class="' + getPieceName(board[i]) + '">' +
+                i.toString(16).toUpperCase() +
+                '</div>' +
+            '</div>';
+        }else {
+            str += '<div class="column off ' +
+            ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'light': 'dark') +
+            '" data-square="' + i + '">' +
+                '<div class="' + getPieceName(board[i]) + '">' +
+                i.toString(16).toUpperCase() +
+                '</div>' +
             '</div>';
         }
-        if( i % 8 === 0 ) {
+        
+        if( i % 16 === 15 ) {
             str += '</div>';
         }
     }
