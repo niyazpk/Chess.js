@@ -36,11 +36,12 @@ var onDrop = function(event, ui) {
     if(validateMove(currentPlayer, parent.data('square'), $(this).data('square'))){
         board[$(this).data('square')] = board[parent.data('square')];
         board[parent.data('square')] = 0;
-        currentPlayer = -currentPlayer;
-        drawBoard(board);
+        currentPlayer = (currentPlayer === 0) ? 8 : 0;
     }else{
-        drawBoard(board);
+        // don't touch the board.
     }
+    
+    setTimeout(function(){drawBoard(board);},50);
 }
 
 $(function(){
@@ -65,8 +66,8 @@ function drawBoard(board){
             str += '</div>';
         }
     }
+
     $('#board').html(str);
-    
     
     $( ".column" ).droppable({
         drop: onDrop
