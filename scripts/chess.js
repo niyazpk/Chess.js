@@ -12,7 +12,7 @@ var BLACK_BISHOP = 0x0D;
 var BLACK_ROOK = 0x0E;
 var BLACK_QUEEN = 0x0F;
 
-var currentPlayer = 1;  // whose turn is it now?    1 = white, 0 = black
+var currentPlayer = 0x0;  // whose turn is it now?    0x0 = white, 0x8 = black
 
 var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK, 0, 0, 0, 0, 0, 0, 0, 0,
              BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -26,16 +26,27 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
 
 function validateMove(currentPlayer, from, to){
     
+    log(board[from], board[to], currentPlayer);
+    
+    // todo: move this check outside this function.    
+    if(!board[from]){ // Moving from an empty square
+        log('Moving from an empty square');
+        return false;
+    }
+    
+    // todo: move this check outside this function.
+    if( (board[from] & 0x8) ^ currentPlayer ) {  // not your turn?
+        log('not your turn?');
+        return false;
+    }
+    
+    if( (board[to] & 0x8) ^ currentPlayer ) {  // cannot attack one of your own
+        log('cannot attack one of your own');
+        return false;
+    }
+    
     return true;
 
-    if(currentPlayer * board[from] <= 0) {  // not your turn? 0 = Moving from an empty square
-        return false;
-    }
-    
-    if(currentPlayer * board[to[0]][to[1]] > 0) {  // cannot attack one of your own - empty move is also convered here
-        return false;
-    }
-    
     var dY = from[0] - to[0];
     var dX = from[1] - to[1];
     var dXY = dX * dY;
