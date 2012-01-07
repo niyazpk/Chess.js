@@ -29,7 +29,7 @@ function validateMove(currentPlayer, from, to){
     fromPiece = board[from];
     toPiece = board[to];
     
-    log(fromPiece, toPiece, currentPlayer);
+    log(from + ' => ' + to, fromPiece, toPiece, currentPlayer);
     
     // todo: move this check outside this function.    
     if(!fromPiece){ // Moving an empty square?
@@ -39,39 +39,49 @@ function validateMove(currentPlayer, from, to){
     
     // todo: move this check outside this function.
     if( (fromPiece & 0x8) ^ currentPlayer ) {  // not your turn?
-        log('not your turn?');
+        log('Not your turn');
         return false;
     }
     
-    if( toPiece && ! (toPiece & 0x8) ^ currentPlayer ) {  // cannot attack one of your own
-        log('cannot attack one of your own');
+    log(toPiece, toPiece & 0x8, currentPlayer);
+    
+    if(toPiece && (toPiece & 0x8) === currentPlayer ) {  // cannot attack one of your own
+        log('Cannot attack one of your own.');
         return false;
     }
 
-    // rook or queen
-    if((fromPiece & 0x04) && (fromPiece & 0x02)){
-        log('rook', from, to, from & 0x0F, to & 0x0F);
+    if((fromPiece & 0x07) === 0x07){ // queen
+        if( (Math.abs(from - to) % 15 && Math.abs(from - to) % 17) &&    // bishop move
+            ((from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0))){  // rook move
+            log('not a valid queen move');
+            return false;
+        }
+    }else if((fromPiece & 0x06) === 0x06){ // rook
         if( (from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0)  ){  // move in a file or a rank
             log('not a valid rook move');
             return false;
         }
-    }
-    
-    return true;
-    
-    // bishop - any bishop
-    if(currentPlayer * board[from[0]][from[1]] === WHITE_BISHOP){
-        if( dXabs !== dYabs ){  // bishop can only move diagonally
+    }else if((fromPiece & 0x05) === 0x05){ // bishop
+        if( Math.abs(from - to) % 15 && Math.abs(from - to) % 17 ){  // bishop can only move diagonally
+            log('not a valid bishop move');
             return false;
         }
+    }else if((fromPiece & 0x03) === 0x03){ // king
+        var diff = Math.abs(from - to);
+        if( diff !== 1  && diff !== 16 && diff !== 17 && diff !== 15 ){
+            log('not a valid king move');
+            return false;
+        }
+    }else if((fromPiece & 0x02) === 0x02){ // knight
+        var diff = Math.abs(from - to);
+        if( diff !== 14  && diff !== 18 && diff !== 31 && diff !== 33 ){
+            log('not a valid knight move');
+            return false;
+        }
+    }else if((fromPiece & 0x01) === 0x01){ // pawn
+        var diff = Math.abs(from - to);
+        log(diff);
     }
 
-    // king - any king
-    if(currentPlayer * board[from[0]][from[1]] === WHITE_KING){
-        //if(  ){
-            return false;
-        //}
-    }
-    
     return true;
 }
