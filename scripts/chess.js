@@ -24,26 +24,22 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
              WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK, 0, 0, 0, 0, 0, 0, 0, 0];
 
 
-function validateMove(currentPlayer, from, to){
+function validateMove(from, to, currentPlayer){
     
     fromPiece = board[from];
     toPiece = board[to];
     
     log(from + ' => ' + to, fromPiece, toPiece, currentPlayer);
     
-    // todo: move this check outside this function.    
     if(!fromPiece){ // Moving an empty square?
         log('Moving an empty square?');
         return false;
     }
     
-    // todo: move this check outside this function.
     if( (fromPiece & 0x8) ^ currentPlayer ) {  // not your turn?
         log('Not your turn');
         return false;
     }
-    
-    log(toPiece, toPiece & 0x8, currentPlayer);
     
     if(toPiece && (toPiece & 0x8) === currentPlayer ) {  // cannot attack one of your own
         log('Cannot attack one of your own.');
@@ -79,9 +75,45 @@ function validateMove(currentPlayer, from, to){
             return false;
         }
     }else if((fromPiece & 0x01) === 0x01){ // pawn
+        var direction = from - to > 0 ? 0x0 : 0x8;  
         var diff = Math.abs(from - to);
-        log(diff);
+        var fromRow = from & 0x70;
+        
+        if( direction !== currentPlayer ){ // a pawn can only move forward
+            log('not a valid pawn move');
+            return false;
+        }
+        
+        if(diff === 16 && !toPiece){  // single move forward?
+            log('valid move forward');
+        } else if(diff === 32 && !toPiece && (fromRow === 0x60 || fromRow === 0x10)){  // double move from start
+            log('valid double move forward');
+        } else if ((diff === 15 || diff === 17) && toPiece) {
+            log('valid capture by pawn');
+        } else {
+            log('not a valid pawn move');
+            return false;
+        }
     }
 
     return true;
+}
+
+function makeMove(from, to){
+    var capturedPiece = board[to];
+    board[to] = board[from];
+    board[from] = 0;
+    currentPlayer = (currentPlayer === 0) ? 8 : 0;
+    return capturedPiece;
+}
+
+function unMakeMove(from, to, capturedPiece){
+    board[from] = board[to];    
+    board[to] = capturedPiece;
+    currentPlayer = (currentPlayer === 0) ? 8 : 0;
+    return true;
+}
+
+function checkAfterMove(from, to){
+    
 }

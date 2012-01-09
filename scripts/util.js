@@ -30,13 +30,12 @@ function getPieceName(pieceValue){
 }
 
 var onDrop = function(event, ui) {
-            
-    var parent = ui.draggable.parent();
+
+    var from = ui.draggable.parent().data('square');
+    var to = $(this).data('square');
     
-    if(validateMove(currentPlayer, parent.data('square'), $(this).data('square'))){
-        board[$(this).data('square')] = board[parent.data('square')];
-        board[parent.data('square')] = 0;
-        currentPlayer = (currentPlayer === 0) ? 8 : 0;
+    if(validateMove(from, to, currentPlayer)){
+        makeMove(from, to);
     }else{
         // don't touch the board.
     }
