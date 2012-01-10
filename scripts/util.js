@@ -39,7 +39,6 @@ var onDrop = function(event, ui) {
     }else{
         // don't touch the board.
     }
-    
     setTimeout(function(){drawBoard(board);},50);
 }
 

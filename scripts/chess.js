@@ -25,53 +25,49 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
 
 
 function validateMove(from, to, currentPlayer){
+    return isPseudoLegal(from, to, currentPlayer) && checkAfterMove(from, to, currentPlayer);
+}
+
+function isPseudoLegal(from, to, currentPlayer){
     
-    fromPiece = board[from];
-    toPiece = board[to];
+    var fromPiece = board[from];
+    var toPiece = board[to];
     
-    log(from + ' => ' + to, fromPiece, toPiece, currentPlayer);
+    //log(from + ' => ' + to, fromPiece, toPiece, currentPlayer);
     
     if(!fromPiece){ // Moving an empty square?
-        log('Moving an empty square?');
         return false;
     }
     
     if( (fromPiece & 0x8) ^ currentPlayer ) {  // not your turn?
-        log('Not your turn');
         return false;
     }
     
     if(toPiece && (toPiece & 0x8) === currentPlayer ) {  // cannot attack one of your own
-        log('Cannot attack one of your own.');
         return false;
     }
 
     if((fromPiece & 0x07) === 0x07){ // queen
         if( (Math.abs(from - to) % 15 && Math.abs(from - to) % 17) &&    // bishop move
             ((from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0))){  // rook move
-            log('not a valid queen move');
             return false;
         }
     }else if((fromPiece & 0x06) === 0x06){ // rook
         if( (from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0)  ){  // move in a file or a rank
-            log('not a valid rook move');
             return false;
         }
     }else if((fromPiece & 0x05) === 0x05){ // bishop
         if( Math.abs(from - to) % 15 && Math.abs(from - to) % 17 ){  // bishop can only move diagonally
-            log('not a valid bishop move');
             return false;
         }
     }else if((fromPiece & 0x03) === 0x03){ // king
         var diff = Math.abs(from - to);
         if( diff !== 1  && diff !== 16 && diff !== 17 && diff !== 15 ){
-            log('not a valid king move');
             return false;
         }
     }else if((fromPiece & 0x02) === 0x02){ // knight
         var diff = Math.abs(from - to);
         if( diff !== 14  && diff !== 18 && diff !== 31 && diff !== 33 ){
-            log('not a valid knight move');
             return false;
         }
     }else if((fromPiece & 0x01) === 0x01){ // pawn
@@ -80,19 +76,50 @@ function validateMove(from, to, currentPlayer){
         var fromRow = from & 0x70;
         
         if( direction !== currentPlayer ){ // a pawn can only move forward
-            log('not a valid pawn move');
             return false;
         }
         
         if(diff === 16 && !toPiece){  // single move forward?
-            log('valid move forward');
+            // valid
         } else if(diff === 32 && !toPiece && (fromRow === 0x60 || fromRow === 0x10)){  // double move from start
-            log('valid double move forward');
+            // valid
         } else if ((diff === 15 || diff === 17) && toPiece) {
-            log('valid capture by pawn');
+            // valid
         } else {
-            log('not a valid pawn move');
             return false;
+        }
+        
+        // todo - En passant
+        // todo - castling
+        
+    }
+    
+    
+    if(fromPiece & 0x04){ // sliding piece
+        var diff = to - from;
+        var step;
+        
+        if(diff % 17 === 0){
+            step = 17;
+        }else if(diff % 15 === 0){
+            step = 15;
+        }else if(diff % 16 === 0){
+            step = 16;
+        }else{
+            step = 1;
+        }
+        
+        var iterations = diff/step;
+        if(iterations < 0){
+            step = -step;
+            iterations = -iterations;
+        }
+        
+        var path = from + step;
+        for(var i = 1; i < iterations; i++, path+=step){
+            if(board[path]){
+                return false;
+            }
         }
     }
 
@@ -103,7 +130,7 @@ function makeMove(from, to){
     var capturedPiece = board[to];
     board[to] = board[from];
     board[from] = 0;
-    currentPlayer = (currentPlayer === 0) ? 8 : 0;
+    currentPlayer = currentPlayer ? 0 : 8;
     return capturedPiece;
 }
 
@@ -114,6 +141,25 @@ function unMakeMove(from, to, capturedPiece){
     return true;
 }
 
-function checkAfterMove(from, to){
+function checkAfterMove(from, to, currentPlayer){
+    var capturedPiece = makeMove(from, to);
     
+    /* Find my king */
+    for( var i = 0 ; i < 128 ; i++ ){
+        if(board[i] === (currentPlayer ? BLACK_KING : WHITE_KING) ){
+            var kingPosition = i;
+        }
+    }
+    
+    for( var i = 0 ; i < 128 ; i++ ){
+        if(board[i]){
+            if(isPseudoLegal(i, kingPosition, currentPlayer ? 0 : 8)){
+                unMakeMove(from, to, capturedPiece);
+                return false;
+            }
+        }
+    }
+    
+    unMakeMove(from, to, capturedPiece);
+    return true;
 }
