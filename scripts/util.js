@@ -48,6 +48,10 @@ $(function(){
 
 function drawBoard(board){
     var str = '';
+    
+    var showsDummyBoard = false;
+    var showsSquareNumbers = false;
+    
     for( var i = 0 ; i < 128 ; i++ ){
         if( i % 16 === 0 ) {
             str += '<div class="row">';
@@ -58,15 +62,15 @@ function drawBoard(board){
             ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'light': 'dark') +
             '" data-square="' + i + '">' +
                 '<div class="' + getPieceName(board[i]) + '">' +
-                i.toString(16).toUpperCase() +
+                (showsSquareNumbers ? i.toString(16).toUpperCase() : '') +
                 '</div>' +
             '</div>';
-        }else {
+        }else if(showsDummyBoard){
             str += '<div class="column off ' +
             ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'light': 'dark') +
             '" data-square="' + i + '">' +
                 '<div class="' + getPieceName(board[i]) + '">' +
-                i.toString(16).toUpperCase() +
+                (showsSquareNumbers ? i.toString(16).toUpperCase() : '') +
                 '</div>' +
             '</div>';
         }
