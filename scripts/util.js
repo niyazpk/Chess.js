@@ -52,8 +52,16 @@ function drawBoard(board){
     var showsDummyBoard = false;
     var showsSquareNumbers = false;
     
-    for( var i = 0 ; i < 128 ; i++ ){
-        if( i % 16 === 0 ) {
+    var whichPlayer = false;
+    var incr = whichPlayer ? 1 : -1;
+    var start = whichPlayer ? 0 : 127;
+    var end = whichPlayer ? 128 : -1;
+    var rowStart = whichPlayer ? 0 : 15;
+    var rowEnd = whichPlayer ? 15 : 0;
+    
+    
+    for( var i = start ; i !== end ; i+= incr ){
+        if( i % 16 === rowStart ) {
             str += '<div class="row">';
         }
         
@@ -75,7 +83,7 @@ function drawBoard(board){
             '</div>';
         }
         
-        if( i % 16 === 15 ) {
+        if( i % 16 === rowEnd ) {
             str += '</div>';
         }
     }
