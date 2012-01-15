@@ -1,3 +1,6 @@
+var WHITE = 0x0;
+var BLACK = 0x8;
+
 var WHITE_PAWN = 0x01;
 var WHITE_KNIGHT = 0x02;
 var WHITE_KING = 0x03;
@@ -12,7 +15,7 @@ var BLACK_BISHOP = 0x0D;
 var BLACK_ROOK = 0x0E;
 var BLACK_QUEEN = 0x0F;
 
-var currentPlayer = 0x0;  // whose turn is it now?    0x0 = white, 0x8 = black
+var currentPlayer = WHITE;  // whose turn is it now?
 
 var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK, 0, 0, 0, 0, 0, 0, 0, 0,
              BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, 0, 0, 0, 0, 0, 0, 0, 0,
