@@ -52,7 +52,7 @@ function drawBoard(board){
     var showsDummyBoard = false;
     var showsSquareNumbers = false;
     
-    var whichPlayer = false;
+    var whichPlayer = true;
     var incr = whichPlayer ? 1 : -1;
     var start = whichPlayer ? 0 : 127;
     var end = whichPlayer ? 128 : -1;
@@ -95,4 +95,71 @@ function drawBoard(board){
     });
     
     $( ".column div" ).draggable({ revert: 'invalid' });
+    
+    var FEN = boardToFEN(board);
+    saveFEN(FEN);
+
+}
+
+function boardToFEN(board){
+    var piece, emptySquares = 0, FEN = '';
+    for(var i=0; i< 128; i++){
+        if(! (i & 0x88) ) {
+            var n = board[i];
+            if((n & 0x07) === 0x07){ // queen
+                piece = 'Q';
+            }else if((n & 0x06) === 0x06){ // rook
+                piece = 'R';
+            }else if((n & 0x05) === 0x05){ // bishop
+                piece = 'B';
+            }else if((n & 0x03) === 0x03){ // king
+                piece = 'K';
+            }else if((n & 0x02) === 0x02){ // knight
+                piece = 'N';
+            }else if((n & 0x01) === 0x01){ // pawn
+                piece = 'P';
+            }
+            
+            if(n === 0){ // empty square
+                piece = '';
+                emptySquares++;
+            }else{
+                piece = emptySquares ? emptySquares + piece : piece;                
+                emptySquares = 0;
+            }
+            
+            if(n & 0x08){
+                piece = piece.toLowerCase();
+            }
+            
+            FEN += piece;
+            
+            if(i % 8 === 7){ // end of rank
+                if(n === 0){
+                   FEN += emptySquares;
+                }
+                emptySquares = 0;
+                FEN += '/';
+            }
+        }
+    }
+    
+    //whose turn?
+    
+    FEN = FEN.substr(0, FEN.length - 1) + ' ';
+    FEN += currentPlayer === WHITE ? 'w' : 'b';
+    FEN += ' KQkq - 0 0';
+    
+    log(FEN);
+    
+    return FEN;
+}
+
+
+function saveFEN(FEN){
+    $.ajax({
+        type: 'POST',
+        url: '/py',
+        data: FEN
+    }); 
 }
