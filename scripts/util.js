@@ -202,6 +202,53 @@ function boardToFEN(board){
     return FEN;
 }
 
+function FENToBoard(FEN){
+    
+    var pieceValueMap = {
+        r: BLACK_ROOK,
+        n: BLACK_KNIGHT,
+        b: BLACK_BISHOP,
+        q: BLACK_QUEEN,
+        k: BLACK_KING,
+        p: BLACK_PAWN,
+        
+        R: WHITE_ROOK,
+        N: WHITE_KNIGHT,
+        B: WHITE_BISHOP,
+        Q: WHITE_QUEEN,
+        K: WHITE_KING,
+        P: WHITE_PAWN
+    };
+    
+    var board = [];
+    FEN = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2';
+    FEN = FEN.split(' ');
+    for (var i = 0, len = FEN[0].length; i < len; i++) {
+        
+        var value = FEN[0][i];
+        if(value === '/'){
+            for(var j = 0; j < 8; j++){
+                board.push(0);
+            }
+            continue;
+        }
+            
+        if(isNaN(value)){
+            board.push(pieceValueMap[value]);
+        } else {
+            for(var j = 0; j < parseInt(value, 10); j++){
+                board.push(0);
+            }
+        }
+    }
+    
+    for(var j = 0; j < 8; j++){
+        board.push(0);
+    }
+    
+    return board;
+}
+
 
 function syncMove(from, to, FEN){
     $.ajax({
@@ -211,7 +258,7 @@ function syncMove(from, to, FEN){
             uid: uid,
             from: from,
             to: to,
-            fen: FEN,
+            FEN: FEN,
             moveCount: moveCount
         },
         success: function(data){
