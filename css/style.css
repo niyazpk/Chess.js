@@ -1,6 +1,12 @@
+*{
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
 #board {
     height: 400px;
-    width: 800px;
+    width: 400px;
+    float: left;
 }
 
 #board .row {
@@ -85,4 +91,15 @@
 
 #board .column .EMPTY {
     background: none;
+}
+
+
+
+#info {
+    float: left;
+    background: #eee;
+    height: 360px;
+    width: 260px;
+    margin-left: 100px;
+    padding: 20px;
 }

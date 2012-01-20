@@ -1,3 +1,5 @@
+var moveCount = 0;
+
 var WHITE = 0x0;
 var BLACK = 0x8;
 
@@ -134,6 +136,7 @@ function makeMove(from, to){
     board[to] = board[from];
     board[from] = 0;
     currentPlayer = currentPlayer ? 0 : 8;
+    moveCount++;
     return capturedPiece;
 }
 
@@ -141,6 +144,7 @@ function unMakeMove(from, to, capturedPiece){
     board[from] = board[to];    
     board[to] = capturedPiece;
     currentPlayer = (currentPlayer === 0) ? 8 : 0;
+    moveCount--;
     return true;
 }
 

@@ -36,6 +36,8 @@ var onDrop = function(event, ui) {
     
     if(validateMove(from, to, currentPlayer)){
         makeMove(from, to);
+        var FEN = boardToFEN(board);
+        syncMove(from, to, FEN);
     }else{
         // don't touch the board.
     }
@@ -43,8 +45,50 @@ var onDrop = function(event, ui) {
 }
 
 $(function(){
+    
+    uidFromURL = getUrlParameterByName('game');
+    uidFromCookie = Cookie.get('chess') ? JSON.parse(Cookie.get('chess')).uid : null;
+    
+    log(uidFromCookie, uidFromURL, (uidFromCookie === uidFromURL));
+    
+    if (!uidFromURL) {
+        if (!uidFromCookie) {
+            var rnd = Math.random();
+            uid = getNewUID() + (rnd > 0.5 ? '0' : '1');
+        } else {
+            uid = uidFromCookie;
+        }
+    } else {
+        if (!uidFromCookie) {
+            uid = uidFromURL;
+        } else {
+            if ((uidFromCookie.substr(0, uidFromCookie.length - 1) !== uidFromURL.substr(0, uidFromURL.length - 1)) &&
+                confirm('Do you want to discard your current game and join this new game? ')) {
+                uid = uidFromURL;
+            } else {
+                uid = uidFromCookie;
+            }
+        }
+    }
+    
+    Cookie.set('chess', JSON.stringify( {
+        uid: uid
+    } ));
+    
+    uid = JSON.parse(Cookie.get('chess')).uid;
+    
+    user.color = (uid[uid.length - 1] === '1') ? 1 : 0 ;
+    uid = uid.substr(0, uid.length - 1);
+    
+    opponentUid = uid + (user.color ? 0 : 1);
+    
+    $('#info .opponent-link').html('http://diovo.com/chess/?game=' + opponentUid).attr('href', '/chess/?game=' + opponentUid);
+    
     drawBoard(board);
+
 });
+
+var user = {};
 
 function drawBoard(board){
     var str = '';
@@ -52,7 +96,7 @@ function drawBoard(board){
     var showsDummyBoard = false;
     var showsSquareNumbers = false;
     
-    var whichPlayer = true;
+    var whichPlayer = user.color;
     var incr = whichPlayer ? 1 : -1;
     var start = whichPlayer ? 0 : 127;
     var end = whichPlayer ? 128 : -1;
@@ -67,7 +111,7 @@ function drawBoard(board){
         
         if(! (i & 0x88) ) {
             str += '<div class="column ' +
-            ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'light': 'dark') +
+            ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'dark': 'light') +
             '" data-square="' + i + '">' +
                 '<div class="' + getPieceName(board[i]) + '">' +
                 (showsSquareNumbers ? i.toString(16).toUpperCase() : '') +
@@ -75,7 +119,7 @@ function drawBoard(board){
             '</div>';
         }else if(showsDummyBoard){
             str += '<div class="column off ' +
-            ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'light': 'dark') +
+            ( (i & 0x1) ^ ((i >> 4)  & 0x1) ? 'dark': 'light') +
             '" data-square="' + i + '">' +
                 '<div class="' + getPieceName(board[i]) + '">' +
                 (showsSquareNumbers ? i.toString(16).toUpperCase() : '') +
@@ -96,9 +140,6 @@ function drawBoard(board){
     
     $( ".column div" ).draggable({ revert: 'invalid' });
     
-    var FEN = boardToFEN(board);
-    saveFEN(FEN);
-
 }
 
 function boardToFEN(board){
@@ -156,10 +197,45 @@ function boardToFEN(board){
 }
 
 
-function saveFEN(FEN){
+function syncMove(from, to, FEN){
     $.ajax({
         type: 'POST',
         url: '/py',
-        data: FEN
-    }); 
+        data: {
+            uid: uid,
+            from: from,
+            to: to,
+            fen: FEN,
+            moveCount: moveCount
+        },
+        success: function(data){
+            pingCounter = setInterval(function(){
+                //alert('hi');
+                $.ajax({
+                    type: 'GET',
+                    url: '/py',
+                    data: {
+                        uid: uid,
+                        fen: FEN,
+                        moveCount: moveCount
+                    },
+                    success: function(data){
+                        log(data, moveCount === data.moveCount);
+                    }
+                })
+            }, 5000);
+        }
+    });
+}
+
+// set unique cookie for every visitor 
+
+function getNewUID() {
+    return Math.floor(Math.random() * 100000000000000000);
+}
+
+// Extract values from the URL parameter
+function getUrlParameterByName(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
 }
