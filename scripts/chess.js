@@ -135,6 +135,9 @@ function makeMove(from, to){
     var capturedPiece = board[to];
     board[to] = board[from];
     board[from] = 0;
+    
+    log(board[from], board[to])
+    
     currentPlayer = currentPlayer ? 0 : 8;
     moveCount++;
     return capturedPiece;

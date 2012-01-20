@@ -49,8 +49,6 @@ $(function(){
     uidFromURL = getUrlParameterByName('game');
     uidFromCookie = Cookie.get('chess') ? JSON.parse(Cookie.get('chess')).uid : null;
     
-    log(uidFromCookie, uidFromURL, (uidFromCookie === uidFromURL));
-    
     if (!uidFromURL) {
         if (!uidFromCookie) {
             var rnd = Math.random();
@@ -85,6 +83,14 @@ $(function(){
     $('#info .opponent-link').html('http://diovo.com/chess/?game=' + opponentUid).attr('href', '/chess/?game=' + opponentUid);
     
     drawBoard(board);
+    
+    
+    log(user.color, moveCount);
+    
+    if(user.color === moveCount % 2){
+        log('yay');
+        listenForRemoteMove();
+    }
 
 });
 
@@ -209,27 +215,12 @@ function syncMove(from, to, FEN){
             moveCount: moveCount
         },
         success: function(data){
-            pingCounter = setInterval(function(){
-                //alert('hi');
-                $.ajax({
-                    type: 'GET',
-                    url: '/py',
-                    data: {
-                        uid: uid,
-                        fen: FEN,
-                        moveCount: moveCount
-                    },
-                    success: function(data){
-                        log(data, moveCount === data.moveCount);
-                    }
-                })
-            }, 5000);
+            listenForRemoteMove();
         }
     });
 }
 
 // set unique cookie for every visitor 
-
 function getNewUID() {
     return Math.floor(Math.random() * 100000000000000000);
 }
@@ -238,4 +229,26 @@ function getNewUID() {
 function getUrlParameterByName(name) {
     var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function listenForRemoteMove(){
+    var pingCounter = setInterval(function(){
+        //alert('hi');
+        $.ajax({
+            type: 'GET',
+            url: '/py',
+            data: {
+                uid: uid,
+                moveCount: moveCount
+            },
+            success: function(data){
+                log(data, data.moveCount, moveCount + 1);
+                if(data.moveCount === moveCount + 1){
+                    clearInterval(pingCounter);
+                    makeMove(data.from, data.to);
+                    drawBoard(board);
+                }
+            }
+        })
+    }, 3000);
 }
