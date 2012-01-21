@@ -30,7 +30,7 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
 
 
 function validateMove(from, to, currentPlayer){
-    return isPseudoLegal(from, to, currentPlayer) && checkAfterMove(from, to, currentPlayer);
+    return isPseudoLegal(from, to, currentPlayer) && !checkAfterMove(from, to, currentPlayer);
 }
 
 function isPseudoLegal(from, to, currentPlayer){
@@ -41,6 +41,10 @@ function isPseudoLegal(from, to, currentPlayer){
     //log(from + ' => ' + to, fromPiece, toPiece, currentPlayer);
     
     if(!fromPiece){ // Moving an empty square?
+        return false;
+    }
+    
+    if (to & 0x88){ // moving to outside valid board?
         return false;
     }
     
@@ -165,11 +169,11 @@ function checkAfterMove(from, to, currentPlayer){
         if(board[i]){
             if(isPseudoLegal(i, kingPosition, currentPlayer ? 0 : 8)){
                 unMakeMove(from, to, capturedPiece);
-                return false;
+                return true;
             }
         }
     }
     
     unMakeMove(from, to, capturedPiece);
-    return true;
+    return false;
 }

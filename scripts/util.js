@@ -82,16 +82,7 @@ $(function(){
     
     $('#info .opponent-link').html('http://diovo.com/chess/?game=' + opponentUid).attr('href', '/chess/?game=' + opponentUid);
     
-    drawBoard(board);
-    
-    
-    log(user.color, moveCount);
-    
-    if(user.color === moveCount % 2){
-        log('yay');
-        listenForRemoteMove();
-    }
-
+    refreshFromServer();
 });
 
 var user = {};
@@ -99,7 +90,7 @@ var user = {};
 function drawBoard(board){
     var str = '';
     
-    var showsDummyBoard = false;
+    var showsDummyBoard = false; // when enabling this, set the board width to 800px in .css
     var showsSquareNumbers = false;
     
     var whichPlayer = user.color;
@@ -145,6 +136,18 @@ function drawBoard(board){
     });
     
     $( ".column div" ).draggable({ revert: 'invalid' });
+    
+    $( ".column" ).mousedown(function(){
+        $('.column').removeClass('red-border');
+        for (var i = 0; i < 128; i++) {
+            if(validateMove($(this).data('square'), i, currentPlayer)){
+                $('.column').filter(function(){
+                    log($(this).data('square'), i);
+                    return $(this).data('square') === i;
+                }).addClass('red-border');
+            }
+        }
+    });
     
 }
 
@@ -221,7 +224,7 @@ function FENToBoard(FEN){
     };
     
     var board = [];
-    FEN = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2';
+    //FEN = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2';
     FEN = FEN.split(' ');
     for (var i = 0, len = FEN[0].length; i < len; i++) {
         
@@ -296,6 +299,42 @@ function listenForRemoteMove(){
                     drawBoard(board);
                 }
             }
-        })
+        });
     }, 3000);
+}
+
+function refreshFromServer(){
+    $.ajax({
+        type: 'GET',
+        url: '/py',
+        data: {
+            uid: uid,
+            moveCount: moveCount
+        },
+        success: function(data){
+            log(data, data.moveCount);
+            if(data.moveCount !== -1){
+                board = FENToBoard(data.FEN);
+                moveCount = data.moveCount;
+            }
+            drawBoard(board);
+            hightlightSquares([data.from, data.to]);
+            if(user.color === moveCount % 2){
+                listenForRemoteMove();
+            }
+        }, error: function(){
+            $('#info .error').text('Could not connect to the server. You will not be able to play a multiplayer game');
+            drawBoard(board);
+        }
+    });
+}
+
+function hightlightSquares(squares) {
+    $('.column').removeClass('red-border');   
+    for (var i = 0; i < squares.length; i++) {
+        log(i);
+        $('.column').filter(function(){
+            return $(this).data('square') === squares[i];
+        }).addClass('red-border');
+    }
 }

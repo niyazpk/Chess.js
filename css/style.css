@@ -17,22 +17,22 @@
 #board .column {
     height: 50px;
     width: 50px;
-    background: #fee472;
+    background: #F8ECC9;
     float: left;
     font-size: 10px;
     font-family: Arial;
 }
 
 #board .column.dark {
-    background: #00B392;
+    background: #99B2B7;
 }
 
 #board .column.off {
-    background: #ffc;
+    background: #fefcf6;
 }
 
 #board .column.off.dark {
-    background: #80D8C8;
+    background: #b7c9cc;
 }
 
 #board .column div {
@@ -93,7 +93,11 @@
     background: none;
 }
 
-
+#board .column.red-border{
+    border: 3px solid red;
+    height: 44px;
+    width: 44px;
+}
 
 #info {
     float: left;
