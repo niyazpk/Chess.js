@@ -152,7 +152,8 @@ function drawBoard(board){
     });
     
     
-    /**/
+    /* Show info */
+    $('#info .moveCount').text('Moves elapsed: ' + Math.floor(moveCount/2));
     
 }
 

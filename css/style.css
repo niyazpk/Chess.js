@@ -93,8 +93,9 @@
     background: none;
 }
 
+/*
 #board .column.red-border{
-    border: 2px solid #d33;
+    border: 2px solid #C02942;
     height: 46px;
     width: 46px;
 }
@@ -102,6 +103,16 @@
 #board .column.red-border div{
     background-position: -2px -2px;
 }
+*/
+#board .column.light.red-border{
+    background-color: #A8DBA8;
+}
+
+#board .column.dark.red-border{
+    background-color: #4ba9a9;
+}
+
+
 
 #info {
     float: left;
