@@ -135,7 +135,9 @@ function drawBoard(board){
         drop: onDrop
     });
     
-    $( ".column div" ).draggable({ revert: 'invalid' });
+    $( ".column div" ).filter(function(){
+        return $(this).attr('class').indexOf(user.color ? 'WHITE' : 'BLACK') !== -1;
+    }).draggable({ revert: 'invalid' });
     
     $( ".column" ).mousedown(function(){
         $('.column').removeClass('red-border');
@@ -148,6 +150,9 @@ function drawBoard(board){
             }
         }
     });
+    
+    
+    /**/
     
 }
 
@@ -249,6 +254,8 @@ function FENToBoard(FEN){
         board.push(0);
     }
     
+    currentPlayer = FEN[1] === 'w' ? WHITE : BLACK;
+    
     return board;
 }
 
@@ -297,6 +304,7 @@ function listenForRemoteMove(){
                     clearInterval(pingCounter);
                     makeMove(data.from, data.to);
                     drawBoard(board);
+                    hightlightSquares([data.from, data.to]);
                 }
             }
         });

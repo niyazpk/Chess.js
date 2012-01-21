@@ -94,9 +94,13 @@
 }
 
 #board .column.red-border{
-    border: 3px solid red;
-    height: 44px;
-    width: 44px;
+    border: 2px solid #d33;
+    height: 46px;
+    width: 46px;
+}
+
+#board .column.red-border div{
+    background-position: -2px -2px;
 }
 
 #info {
