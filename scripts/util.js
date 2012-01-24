@@ -341,7 +341,6 @@ function refreshFromServer(){
 function hightlightSquares(squares) {
     $('.column').removeClass('red-border');   
     for (var i = 0; i < squares.length; i++) {
-        log(i);
         $('.column').filter(function(){
             return $(this).data('square') === squares[i];
         }).addClass('red-border');

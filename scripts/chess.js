@@ -90,7 +90,10 @@ function isPseudoLegal(from, to, currentPlayer){
         
         if(diff === 16 && !toPiece){  // single move forward?
             // valid
-        } else if(diff === 32 && !toPiece && (fromRow === 0x60 || fromRow === 0x10)){  // double move from start
+        } else if(diff === 32 &&
+                  (fromRow === 0x60 || fromRow === 0x10) &&
+                  !toPiece &&
+                  !board[from + (direction ? 16 : -16)]){  // double move from start
             // valid
         } else if ((diff === 15 || diff === 17) && toPiece) {
             // valid
