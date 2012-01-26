@@ -168,15 +168,18 @@ function checkAfterMove(from, to, currentPlayer){
         }
     }
     
+    var isKingUnderAttack = isSquareUnderAttack(kingPosition, currentPlayer);
+    unMakeMove(from, to, capturedPiece);
+    return isKingUnderAttack;
+}
+
+function isSquareUnderAttack(square, currentPlayer){
     for( var i = 0 ; i < 128 ; i++ ){
         if(board[i]){
-            if(isPseudoLegal(i, kingPosition, currentPlayer ? 0 : 8)){
-                unMakeMove(from, to, capturedPiece);
+            if(isPseudoLegal(i, square, currentPlayer ? 0 : 8)){
                 return true;
             }
         }
     }
-    
-    unMakeMove(from, to, capturedPiece);
     return false;
 }
