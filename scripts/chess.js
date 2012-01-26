@@ -29,7 +29,7 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
              WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK, 0, 0, 0, 0, 0, 0, 0, 0];
 
 
-var castles = 0;
+var castles = 0xF;
 
 function validateMove(from, to, currentPlayer){
     return isPseudoLegal(from, to, currentPlayer) && !checkAfterMove(from, to, currentPlayer);
@@ -73,7 +73,14 @@ function isPseudoLegal(from, to, currentPlayer){
         }
     }else if((fromPiece & 0x07) === 0x03){ // king
         var diff = Math.abs(from - to);
-        if( diff !== 1  && diff !== 16 && diff !== 17 && diff !== 15 ){
+        var direction = from - to > 0 ? 0x0 : 0x1;
+        log(diff, direction);
+        if( diff === 1  || diff === 16 || diff === 17 || diff === 15 ){
+            // valid
+        } else if ( diff === 2 && // castling
+                  (castles >> (currentPlayer/4 + direction)) & 1 ){
+            // valid
+        } else {
             return false;
         }
     }else if((fromPiece & 0x07) === 0x02){ // knight
@@ -145,7 +152,7 @@ function makeMove(from, to){
     board[to] = board[from];
     board[from] = 0;
     
-    log(board[from], board[to])
+    //log(board[from], board[to])
     
     currentPlayer = currentPlayer ? 0 : 8;
     moveCount++;

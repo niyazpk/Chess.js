@@ -136,15 +136,16 @@ function drawBoard(board){
     });
     
     $( ".column div" ).filter(function(){
+        return true;    // todo -remove this line to enable 2-player game
         return $(this).attr('class').indexOf(user.color ? 'WHITE' : 'BLACK') !== -1;
     }).draggable({ revert: 'invalid' });
+    
     
     $( ".column" ).mousedown(function(){
         $('.column').removeClass('red-border');
         for (var i = 0; i < 128; i++) {
             if(validateMove($(this).data('square'), i, currentPlayer)){
                 $('.column').filter(function(){
-                    log($(this).data('square'), i);
                     return $(this).data('square') === i;
                 }).addClass('red-border');
             }
@@ -206,7 +207,7 @@ function boardToFEN(board){
     FEN += currentPlayer === WHITE ? 'w' : 'b';
     FEN += ' KQkq - 0 0';
     
-    log(FEN);
+    //log(FEN);
     
     return FEN;
 }
@@ -300,7 +301,7 @@ function listenForRemoteMove(){
                 moveCount: moveCount
             },
             success: function(data){
-                log(data, data.moveCount, moveCount + 1);
+                //log(data, data.moveCount, moveCount + 1);
                 if(data.moveCount === moveCount + 1){
                     clearInterval(pingCounter);
                     makeMove(data.from, data.to);
@@ -321,7 +322,7 @@ function refreshFromServer(){
             moveCount: moveCount
         },
         success: function(data){
-            log(data, data.moveCount);
+            //log(data, data.moveCount);
             if(data.moveCount !== -1){
                 board = FENToBoard(data.FEN);
                 moveCount = data.moveCount;
