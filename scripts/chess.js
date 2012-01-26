@@ -29,6 +29,8 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
              WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK, 0, 0, 0, 0, 0, 0, 0, 0];
 
 
+var castles = 0;
+
 function validateMove(from, to, currentPlayer){
     return isPseudoLegal(from, to, currentPlayer) && !checkAfterMove(from, to, currentPlayer);
 }
@@ -61,25 +63,25 @@ function isPseudoLegal(from, to, currentPlayer){
             ((from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0))){  // rook move
             return false;
         }
-    }else if((fromPiece & 0x06) === 0x06){ // rook
+    }else if((fromPiece & 0x07) === 0x06){ // rook
         if( (from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0)  ){  // move in a file or a rank
             return false;
         }
-    }else if((fromPiece & 0x05) === 0x05){ // bishop
+    }else if((fromPiece & 0x07) === 0x05){ // bishop
         if( Math.abs(from - to) % 15 && Math.abs(from - to) % 17 ){  // bishop can only move diagonally
             return false;
         }
-    }else if((fromPiece & 0x03) === 0x03){ // king
+    }else if((fromPiece & 0x07) === 0x03){ // king
         var diff = Math.abs(from - to);
         if( diff !== 1  && diff !== 16 && diff !== 17 && diff !== 15 ){
             return false;
         }
-    }else if((fromPiece & 0x02) === 0x02){ // knight
+    }else if((fromPiece & 0x07) === 0x02){ // knight
         var diff = Math.abs(from - to);
         if( diff !== 14  && diff !== 18 && diff !== 31 && diff !== 33 ){
             return false;
         }
-    }else if((fromPiece & 0x01) === 0x01){ // pawn
+    }else if((fromPiece & 0x07) === 0x01){ // pawn
         var direction = from - to > 0 ? 0x0 : 0x8;  
         var diff = Math.abs(from - to);
         var fromRow = from & 0x70;
