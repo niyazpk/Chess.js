@@ -347,3 +347,13 @@ function hightlightSquares(squares) {
         }).addClass('red-border');
     }
 }
+
+/*
+
+Castling tests
+
+FEN    =     "r3k2r/p1qbbppp/n7/1Np1pn2/2P2N2/1P1p4/PBQP1PPP/R3K2R b KQkq - 0 0";
+board = FENToBoard(FEN);
+drawBoard(board);
+
+*/

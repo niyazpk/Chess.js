@@ -83,9 +83,7 @@ function isPseudoLegal(from, to, currentPlayer){
     }else if(pieceType === KING){ // king
         var diff = Math.abs(from - to);
         var direction = from - to > 0 ? 0x0 : 0x1;
-        if (diff === 2){
-            log(diff, direction, from, from + (direction ? 3 : -4), from + (direction ? 1 : -1));
-        }
+
         if( diff === 1  || diff === 16 || diff === 17 || diff === 15 ){
             // valid
         } else if ( diff === 2 && // castling
@@ -162,12 +160,24 @@ function isPseudoLegal(from, to, currentPlayer){
 }
 
 function makeMove(from, to){
+    
     var capturedPiece = board[to];
     board[to] = board[from];
     board[from] = 0;
     
-    //log(board[from], board[to])
+    // move rook too if it is castling
     
+    if( (board[to] & 0x07) === KING &&
+        Math.abs(from - to) === 2){
+        var rookTo = from + (from > to ? -1 : 1);
+        var rookFrom = from + (from > to ? -4 : 3);
+        
+        log('  do castling: ', from, to, rookFrom, rookTo);
+
+        board[rookTo] = board[rookFrom];
+        board[rookFrom] = 0;
+    }
+
     currentPlayer = currentPlayer ? 0 : 8;
     moveCount++;
     return capturedPiece;
@@ -176,6 +186,19 @@ function makeMove(from, to){
 function unMakeMove(from, to, capturedPiece){
     board[from] = board[to];    
     board[to] = capturedPiece;
+    
+    // undo castling
+    if( (board[from] & 0x07) === KING &&
+        Math.abs(from - to) === 2){
+        var rookTo = from + (from > to ? -1 : 1);
+        var rookFrom = from + (from > to ? -4 : 3);
+        
+        log('undo castling: ', from, to, rookFrom, rookTo);
+
+        board[rookFrom] = board[rookTo];
+        board[rookTo] = 0;
+    }
+    
     currentPlayer = (currentPlayer === 0) ? 8 : 0;
     moveCount--;
     return true;
