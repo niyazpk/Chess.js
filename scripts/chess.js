@@ -3,6 +3,13 @@ var moveCount = 0;
 var WHITE = 0x0;
 var BLACK = 0x8;
 
+var PAWN = 0x01;
+var KNIGHT = 0x02;
+var KING = 0x03;
+var BISHOP = 0x05;
+var ROOK = 0x06;
+var QUEEN = 0x07;
+
 var WHITE_PAWN = 0x01;
 var WHITE_KNIGHT = 0x02;
 var WHITE_KING = 0x03;
@@ -57,38 +64,45 @@ function isPseudoLegal(from, to, currentPlayer){
     if(toPiece && (toPiece & 0x8) === currentPlayer ) {  // cannot attack one of your own
         return false;
     }
+    
+    var pieceType = fromPiece & 0x07;
 
-    if((fromPiece & 0x07) === 0x07){ // queen
+    if(pieceType === QUEEN){ // queen
         if( (Math.abs(from - to) % 15 && Math.abs(from - to) % 17) &&    // bishop move
             ((from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0))){  // rook move
             return false;
         }
-    }else if((fromPiece & 0x07) === 0x06){ // rook
+    }else if(pieceType === ROOK){ // rook
         if( (from & 0x0F) !== (to & 0x0F) && (from & 0xF0) !== (to & 0xF0)  ){  // move in a file or a rank
             return false;
         }
-    }else if((fromPiece & 0x07) === 0x05){ // bishop
+    }else if(pieceType === BISHOP){ // bishop
         if( Math.abs(from - to) % 15 && Math.abs(from - to) % 17 ){  // bishop can only move diagonally
             return false;
         }
-    }else if((fromPiece & 0x07) === 0x03){ // king
+    }else if(pieceType === KING){ // king
         var diff = Math.abs(from - to);
         var direction = from - to > 0 ? 0x0 : 0x1;
-        log(diff, direction);
+        if (diff === 2){
+            log(diff, direction, from, from + (direction ? 3 : -4), from + (direction ? 1 : -1));
+        }
         if( diff === 1  || diff === 16 || diff === 17 || diff === 15 ){
             // valid
         } else if ( diff === 2 && // castling
-                  (castles >> (currentPlayer/4 + direction)) & 1 ){
+                   (castles >> (currentPlayer/4 + direction)) & 1 // casling is available in this direction
+                   && ! isSquareUnderAttack(from, currentPlayer) // king is not in check now
+                   && ! isSquareUnderAttack(from + (direction ? 1 : -1), currentPlayer) // the next square is not in check
+                   && isPseudoLegal(from + (direction ? 3 : -4), from + (direction ? 1 : -1), currentPlayer) ){ // rook can move
             // valid
         } else {
             return false;
         }
-    }else if((fromPiece & 0x07) === 0x02){ // knight
+    }else if(pieceType === KNIGHT){ // knight
         var diff = Math.abs(from - to);
         if( diff !== 14  && diff !== 18 && diff !== 31 && diff !== 33 ){
             return false;
         }
-    }else if((fromPiece & 0x07) === 0x01){ // pawn
+    }else if(pieceType === PAWN){ // pawn
         var direction = from - to > 0 ? 0x0 : 0x8;  
         var diff = Math.abs(from - to);
         var fromRow = from & 0x70;
