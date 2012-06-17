@@ -91,7 +91,7 @@ function drawBoard(board){
     var str = '';
     
     var showsDummyBoard = false; // when enabling this, set the board width to 800px in .css
-    var showsSquareNumbers = false;
+    var showsSquareNumbers = true;
     
     var whichPlayer = user.color;
     var incr = whichPlayer ? 1 : -1;

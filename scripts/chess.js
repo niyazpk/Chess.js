@@ -36,7 +36,7 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
              WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK, 0, 0, 0, 0, 0, 0, 0, 0];
 
 
-var castles = 0xF;
+var castleRights = 0xF;
 
 function validateMove(from, to, currentPlayer){
     return isPseudoLegal(from, to, currentPlayer) && !checkAfterMove(from, to, currentPlayer);
@@ -87,20 +87,20 @@ function isPseudoLegal(from, to, currentPlayer){
         if( diff === 1  || diff === 16 || diff === 17 || diff === 15 ){
             // valid
         } else if ( diff === 2 && // castling
-                   (castles >> (currentPlayer/4 + direction)) & 1 // casling is available in this direction
-                   && ! isSquareUnderAttack(from, currentPlayer) // king is not in check now
-                   && ! isSquareUnderAttack(from + (direction ? 1 : -1), currentPlayer) // the next square is not in check
-                   && isPseudoLegal(from + (direction ? 3 : -4), from + (direction ? 1 : -1), currentPlayer) ){ // rook can move
+                   (castleRights >> (currentPlayer/4 + direction)) & 1 && // casling is available in this direction
+                   ! isSquareUnderAttack(from, currentPlayer) && // king is not in check now
+                   ! checkAfterMove(from, from + (direction ? 1 : -1), currentPlayer) && // the next square is not in check
+                   isPseudoLegal(from + (direction ? 3 : -4), from + (direction ? 1 : -1), currentPlayer) ){ // rook can move
             // valid
         } else {
             return false;
         }
-    }else if(pieceType === KNIGHT){ // knight
+    } else if(pieceType === KNIGHT){ // knight
         var diff = Math.abs(from - to);
         if( diff !== 14  && diff !== 18 && diff !== 31 && diff !== 33 ){
             return false;
         }
-    }else if(pieceType === PAWN){ // pawn
+    } else if(pieceType === PAWN){ // pawn
         var direction = from - to > 0 ? 0x0 : 0x8;  
         var diff = Math.abs(from - to);
         var fromRow = from & 0x70;
@@ -123,10 +123,7 @@ function isPseudoLegal(from, to, currentPlayer){
         }
         
         // todo - En passant
-        // todo - castling
-        
     }
-    
     
     if(fromPiece & 0x04){ // sliding piece
         var diff = to - from;
@@ -164,28 +161,46 @@ function makeMove(from, to){
     var capturedPiece = board[to];
     board[to] = board[from];
     board[from] = 0;
+
+    // Hack to remember castleRights so that we don't
+    // have to use a stack to keep track of it.
+    var stateData = (capturedPiece << 4) + castleRights;
     
-    // move rook too if it is castling
-    
+    // move rook too if it is a castling move
     if( (board[to] & 0x07) === KING &&
         Math.abs(from - to) === 2){
         var rookTo = from + (from > to ? -1 : 1);
         var rookFrom = from + (from > to ? -4 : 3);
         
-        log('  do castling: ', from, to, rookFrom, rookTo);
-
         board[rookTo] = board[rookFrom];
         board[rookFrom] = 0;
+
+        // update castleRights
+        castleRights &= ~(3 << (currentPlayer/4)); // clear castling on both sides
+    }
+    
+    // In make move one has to consider that king-moves reset both castling bits per side.
+    // Rook-moves from their original square, or captures of rooks on their
+    // original squares reset the appropriate castling bits per wing and side. (todo)
+    if( (board[to] & 0x07) === ROOK ) {
+        if(from === 0x0 || from === 0x70){
+            var direction = 0;
+            castleRights &= ~(1 << (currentPlayer/4 + direction));
+        } else if (from === 0x7 || from === 0x77) {
+            var direction = 1;
+            castleRights &= ~(1 << (currentPlayer/4 + direction));
+        }
     }
 
     currentPlayer = currentPlayer ? 0 : 8;
     moveCount++;
-    return capturedPiece;
+    return stateData;
 }
 
-function unMakeMove(from, to, capturedPiece){
-    board[from] = board[to];    
-    board[to] = capturedPiece;
+function unMakeMove(from, to, stateData){
+    board[from] = board[to];
+    board[to] = stateData >> 4;
+    castleRights = stateData & 0xF;
     
     // undo castling
     if( (board[from] & 0x07) === KING &&
@@ -193,8 +208,6 @@ function unMakeMove(from, to, capturedPiece){
         var rookTo = from + (from > to ? -1 : 1);
         var rookFrom = from + (from > to ? -4 : 3);
         
-        log('undo castling: ', from, to, rookFrom, rookTo);
-
         board[rookFrom] = board[rookTo];
         board[rookTo] = 0;
     }
@@ -205,20 +218,25 @@ function unMakeMove(from, to, capturedPiece){
 }
 
 function checkAfterMove(from, to, currentPlayer){
-    var capturedPiece = makeMove(from, to);
+    var stateData = makeMove(from, to);
     
     /* Find my king */
     for( var i = 0 ; i < 128 ; i++ ){
         if(board[i] === (currentPlayer ? BLACK_KING : WHITE_KING) ){
             var kingPosition = i;
+            break;
         }
     }
     
     var isKingUnderAttack = isSquareUnderAttack(kingPosition, currentPlayer);
-    unMakeMove(from, to, capturedPiece);
+    unMakeMove(from, to, stateData);
     return isKingUnderAttack;
 }
 
+/*
+    Important Note: This fn cannot be used to check attacks on empty squares
+    as of now since pawn captures to empty squares will not validate (todo: fix this)
+*/
 function isSquareUnderAttack(square, currentPlayer){
     for( var i = 0 ; i < 128 ; i++ ){
         if(board[i]){
