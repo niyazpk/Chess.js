@@ -1,4 +1,7 @@
-var moveCount = 0;
+var moveCount = 0;  // Counter for number of moves
+
+
+/* Following are a few var names defined for better code readability. */
 
 var WHITE = 0x0;
 var BLACK = 0x8;
@@ -10,6 +13,8 @@ var BISHOP = 0x05;
 var ROOK = 0x06;
 var QUEEN = 0x07;
 
+
+// White pieces have their 4th bit = 0
 var WHITE_PAWN = 0x01;
 var WHITE_KNIGHT = 0x02;
 var WHITE_KING = 0x03;
@@ -17,6 +22,7 @@ var WHITE_BISHOP = 0x05;
 var WHITE_ROOK = 0x06;
 var WHITE_QUEEN = 0x07;
 
+// Black pieces have their 4th bit = 1
 var BLACK_PAWN = 0x09;
 var BLACK_KNIGHT = 0x0A;
 var BLACK_KING = 0x0B;
@@ -26,6 +32,7 @@ var BLACK_QUEEN = 0x0F;
 
 var currentPlayer = WHITE;  // whose turn is it now?
 
+// Initial state
 var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK, 0, 0, 0, 0, 0, 0, 0, 0,
              BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, 0, 0, 0, 0, 0, 0, 0, 0,
              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -35,8 +42,7 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
              WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, 0, 0, 0, 0, 0, 0, 0, 0,
              WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK, 0, 0, 0, 0, 0, 0, 0, 0];
 
-
-var castleRights = 0xF;
+var castleRights = 0xF; // 4 bits to track castling on each side for both players
 
 function validateMove(from, to, currentPlayer){
     return isPseudoLegal(from, to, currentPlayer) && !checkAfterMove(from, to, currentPlayer);
@@ -156,6 +162,14 @@ function isPseudoLegal(from, to, currentPlayer){
     return true;
 }
 
+
+/*
+    Makes a move on the board.
+    This function is called only if the move is a valid move.
+    This method takes care of moving the pieces on the board and
+    setting any other variables like castlerights.
+*/
+
 function makeMove(from, to){
 
     var capturedPiece = board[to];
@@ -180,8 +194,6 @@ function makeMove(from, to){
             board[rookTo] = board[rookFrom];
             board[rookFrom] = 0;
         }
-
-
     }
 
     // Rook-move resets castling in that side
@@ -206,7 +218,6 @@ function makeMove(from, to){
             var otherPlayer = currentPlayer ? 0 : 8;
             castleRights &= ~(1 << (otherPlayer/4 + direction));
         }
-
     }
 
     currentPlayer = currentPlayer ? 0 : 8;
@@ -214,6 +225,10 @@ function makeMove(from, to){
     log(castleRights.toString(2));
     return stateData;
 }
+
+/*
+    Reverts ALL changes made by makeMove
+*/
 
 function unMakeMove(from, to, stateData){
     board[from] = board[to];
