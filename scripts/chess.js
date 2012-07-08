@@ -43,28 +43,28 @@ function validateMove(from, to, currentPlayer){
 }
 
 function isPseudoLegal(from, to, currentPlayer){
-    
+
     var fromPiece = board[from];
     var toPiece = board[to];
-    
+
     //log(from + ' => ' + to, fromPiece, toPiece, currentPlayer);
-    
+
     if(!fromPiece){ // Moving an empty square?
         return false;
     }
-    
+
     if (to & 0x88){ // moving to outside valid board?
         return false;
     }
-    
+
     if( (fromPiece & 0x8) ^ currentPlayer ) {  // not your turn?
         return false;
     }
-    
+
     if(toPiece && (toPiece & 0x8) === currentPlayer ) {  // cannot attack one of your own
         return false;
     }
-    
+
     var pieceType = fromPiece & 0x07;
 
     if(pieceType === QUEEN){ // queen
@@ -101,14 +101,14 @@ function isPseudoLegal(from, to, currentPlayer){
             return false;
         }
     } else if(pieceType === PAWN){ // pawn
-        var direction = from - to > 0 ? 0x0 : 0x8;  
+        var direction = from - to > 0 ? 0x0 : 0x8;
         var diff = Math.abs(from - to);
         var fromRow = from & 0x70;
-        
+
         if( direction !== currentPlayer ){ // a pawn can only move forward
             return false;
         }
-        
+
         if(diff === 16 && !toPiece){  // single move forward?
             // valid
         } else if(diff === 32 &&
@@ -121,14 +121,14 @@ function isPseudoLegal(from, to, currentPlayer){
         } else {
             return false;
         }
-        
+
         // todo - En passant
     }
-    
+
     if(fromPiece & 0x04){ // sliding piece
         var diff = to - from;
         var step;
-        
+
         if(diff % 17 === 0){
             step = 17;
         }else if(diff % 15 === 0){
@@ -138,13 +138,13 @@ function isPseudoLegal(from, to, currentPlayer){
         }else{
             step = 1;
         }
-        
+
         var iterations = diff/step;
         if(iterations < 0){
             step = -step;
             iterations = -iterations;
         }
-        
+
         var path = from + step;
         for(var i = 1; i < iterations; i++, path+=step){
             if(board[path]){
@@ -157,7 +157,7 @@ function isPseudoLegal(from, to, currentPlayer){
 }
 
 function makeMove(from, to){
-    
+
     var capturedPiece = board[to];
     board[to] = board[from];
     board[from] = 0;
@@ -165,24 +165,27 @@ function makeMove(from, to){
     // Hack to remember castleRights so that we don't
     // have to use a stack to keep track of it.
     var stateData = (capturedPiece << 4) + castleRights;
-    
-    // move rook too if it is a castling move
-    if( (board[to] & 0x07) === KING &&
-        Math.abs(from - to) === 2){
-        var rookTo = from + (from > to ? -1 : 1);
-        var rookFrom = from + (from > to ? -4 : 3);
-        
-        board[rookTo] = board[rookFrom];
-        board[rookFrom] = 0;
 
-        // update castleRights
-        castleRights &= ~(3 << (currentPlayer/4)); // clear castling on both sides
+
+    if( (board[to] & 0x07) === KING ){
+
+        // King-moves reset both castling bits per side.
+        castleRights &= ~(3 << (currentPlayer/4));
+
+        // move rook too if it is a castling move
+        if( Math.abs(from - to) === 2 ){
+            var rookTo = from + (from > to ? -1 : 1);
+            var rookFrom = from + (from > to ? -4 : 3);
+
+            board[rookTo] = board[rookFrom];
+            board[rookFrom] = 0;
+        }
+
+
     }
-    
-    // In make move one has to consider that king-moves reset both castling bits per side.
-    // Rook-moves from their original square, or captures of rooks on their
-    // original squares reset the appropriate castling bits per wing and side. (todo)
-    if( (board[to] & 0x07) === ROOK ) {
+
+    // Rook-move resets castling in that side
+    if( (board[to] & 0x07) === ROOK ){
         if(from === 0x0 || from === 0x70){
             var direction = 0;
             castleRights &= ~(1 << (currentPlayer/4 + direction));
@@ -192,8 +195,23 @@ function makeMove(from, to){
         }
     }
 
+    // Capture of rook resets castling in that side
+    if( (capturedPiece & 0x07) === ROOK ){
+        if(to === 0x0 || to === 0x70){
+            var direction = 0;
+            var otherPlayer = currentPlayer ? 0 : 8;
+            castleRights &= ~(1 << (otherPlayer/4 + direction));
+        } else if (to === 0x7 || to === 0x77) {
+            var direction = 1;
+            var otherPlayer = currentPlayer ? 0 : 8;
+            castleRights &= ~(1 << (otherPlayer/4 + direction));
+        }
+
+    }
+
     currentPlayer = currentPlayer ? 0 : 8;
     moveCount++;
+    log(castleRights.toString(2));
     return stateData;
 }
 
@@ -201,17 +219,17 @@ function unMakeMove(from, to, stateData){
     board[from] = board[to];
     board[to] = stateData >> 4;
     castleRights = stateData & 0xF;
-    
+
     // undo castling
     if( (board[from] & 0x07) === KING &&
         Math.abs(from - to) === 2){
         var rookTo = from + (from > to ? -1 : 1);
         var rookFrom = from + (from > to ? -4 : 3);
-        
+
         board[rookFrom] = board[rookTo];
         board[rookTo] = 0;
     }
-    
+
     currentPlayer = (currentPlayer === 0) ? 8 : 0;
     moveCount--;
     return true;
@@ -219,7 +237,7 @@ function unMakeMove(from, to, stateData){
 
 function checkAfterMove(from, to, currentPlayer){
     var stateData = makeMove(from, to);
-    
+
     /* Find my king */
     for( var i = 0 ; i < 128 ; i++ ){
         if(board[i] === (currentPlayer ? BLACK_KING : WHITE_KING) ){
@@ -227,7 +245,7 @@ function checkAfterMove(from, to, currentPlayer){
             break;
         }
     }
-    
+
     var isKingUnderAttack = isSquareUnderAttack(kingPosition, currentPlayer);
     unMakeMove(from, to, stateData);
     return isKingUnderAttack;
